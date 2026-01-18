@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>友情链接 | 阳毅</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-color: #050505;
+            --accent-color: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: #888888;
+            --glow-color: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            font-family: 'Inter', -apple-system, sans-serif;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* 顶部导航 */
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 2rem;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(5,5,5,0.8), rgba(5,5,5,0));
+            backdrop-filter: blur(10px);
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-link:hover {
+            color: var(--text-main);
+        }
+
+        /* 容器 */
+        .links-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 140px 20px 80px;
+        }
+
+        /* 章节标题 */
+        .section-title {
+            position: relative;
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-main);
+            opacity: 0.9;
+        }
+
+        .section-title::after {
+            content: '';
+            flex-grow: 1;
+            height: 1px;
+            background: linear-gradient(to right, var(--accent-color), transparent);
+        }
+
+        /* 友链卡片栅格 */
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 5rem;
+        }
+
+        .friend-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .friend-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .friend-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            background: #111;
+            flex-shrink: 0;
+            object-fit: cover;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.5s ease;
+        }
+
+        .friend-card:hover .friend-avatar {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .friend-info {
+            overflow: hidden;
+        }
+
+        .friend-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .friend-desc {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* 装饰背景文字 */
+        .bg-text {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18vw;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.01);
+            pointer-events: none;
+            z-index: -1;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <a href="/" class="back-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            BACK
+        </a>
+        <div class="text-white font-bold tracking-widest uppercase opacity-40 text-[10px]">Connectivity Hub</div>
+    </header>
+
+    <div class="bg-text">NETWORK</div>
+
+    <main class="links-wrapper">
+        <div class="mb-16">
+            <h1 class="text-4xl font-black mb-3">连接世界</h1>
+            <p class="text-dim text-lg">在漫漫的星路中，与那些闪耀的灵魂同行。</p>
+        </div>
+
+        <!-- 区域 1：我敬仰的人 -->
+        <div class="section-title">我敬仰的人</div>
+        <div class="links-grid" id="grid-admire"></div>
+
+        <!-- 区域 2：我的伙伴 -->
+        <div class="section-title">我的伙伴</div>
+        <div class="links-grid" id="grid-partners"></div>
+
+        <!-- 区域 3：友情链接 -->
+        <div class="section-title">友情链接</div>
+        <div class="links-grid" id="grid-exchange"></div>
+    </main>
+
+    <script>
+        // 链接数据分类
+        const linkCategories = {
+            admire: [
+                {
+                    name: "what",
+                    avatar: "https://vip.123pan.cn/1814376442/shangcloud/what.jpg",
+                    desc: "我的老师/40code站长",
+                    url: "https://40code.com/#page=user&id=1"
+                },
+                {
+                    name: "Kairo(zmh-program)",
+                    avatar: "https://zmh-program.site/avatar.webp",
+                    desc: "真的是神一般的存在",
+                    url: "https://zmh-program.site"
+                },
+                {
+                    name: "氧化某人",
+                    avatar: "https://q1.qlogo.cn/g?b=qq&nk=705043745&s=640",
+                    desc: "究竟还有多少能力是我不知道的呢",
+                    url: "https://blog.yang1120.com"
+                }
+            ],
+            partners: [
+                {
+                    name: "陨落基围虾",
+                    avatar: "https://fshrimp.fun/avatars/lycaon.jpg",
+                    desc: "超级牛逼的全栈开发者",
+                    url: "https://fshrimp.fun"
+                },
+                {
+                    name: "孙悟元",
+                    avatar: "https://vip.123pan.cn/1814376442/shangcloud/sunwuyun.jpg",
+                    desc: "大佬",
+                    url: "https://wuyuan.dev"
+                },
+                {
+                    name: "Tiger",
+                    avatar: "https://vip.123pan.cn/1814376442/shangcloud/img4240df7730aa854b9b6cc2a5523bc706.jpg",
+                    desc: "一个很好的编程伙伴",
+                    url: "https://tigercoder.top/"
+                },
+                {
+                    name: "TangerinePeel",
+                    avatar: "https://q1.qlogo.cn/g?b=qq&nk=1694259407&s=640",
+                    desc: "橘子皮什么时候能回来学编程呢",
+                    url: "https://40code.com/#page=user&id=660"
+                },
+                {
+                    name: "吾家小狐",
+                    avatar: "https://q1.qlogo.cn/g?b=qq&nk=399781969&s=640",
+                    desc: "一个非常有能力的开发者",
+                    url: "https://shunian.scerpark.cn"
+                },
+                {
+                    name: "主核Kernyr",
+                    avatar: "https://hujiarong.site/assets/avatar.jpg",
+                    desc: "之前不会用Git真是被骂惨了(杂鱼♡~)",
+                    url: "https://hujiarong.site"
+                },
+                
+            ],
+            exchange: [
+                {
+                    name: "Binbim",
+                    avatar: "https://q1.qlogo.cn/g?b=qq&nk=1721822150&s=640",
+                    desc: "职高准毕业生&全栈Dev",
+                    url: "https://home.binbim.top"
+                },
+                {
+                    name: "Cyberexplorer",
+                    avatar: "https://q1.qlogo.cn/g?b=qq&nk=3091949883&s=640",
+                    desc: "不要看着我以为我很傻，其实我一点也不聪明。",
+                    url: "https://cyberneko.cn/"
+                },
+                {
+                    name: "沙星",
+                    avatar: "https://q1.qlogo.cn/g?b=qq&nk=1297519991&s=640",
+                    desc: "迷失的人迷失了，相逢的人会再相逢",
+                    url: "https://blog.mnsjtxy.icu"
+                }
+            ]
+        };
+
+        function renderSection(gridId, data) {
+            const grid = document.getElementById(gridId);
+            if (!grid) return;
+            grid.innerHTML = data.map(link => `
+                <a href="${link.url}" target="_blank" class="friend-card">
+                    <img src="${link.avatar}" class="friend-avatar" alt="${link.name}">
+                    <div class="friend-info">
+                        <div class="friend-name">${link.name}</div>
+                        <div class="friend-desc">${link.desc}</div>
+                    </div>
+                </a>
+            `).join('');
+        }
+
+        window.onload = () => {
+            renderSection('grid-admire', linkCategories.admire);
+            renderSection('grid-partners', linkCategories.partners);
+            renderSection('grid-exchange', linkCategories.exchange);
+        };
+    </script>
+</body>
+</html>

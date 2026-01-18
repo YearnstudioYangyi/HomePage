@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>阳毅 | YearnstudioYangyi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-color: #050505;
+            --accent-color: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: #888888;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, sans-serif;
+        }
+
+        /* 全局模糊遮罩 */
+        #global-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(0px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s ease;
+            z-index: 15; 
+        }
+
+        body.blur-active #global-overlay {
+            opacity: 1;
+            backdrop-filter: blur(8px);
+        }
+
+        /* 页面包装器 */
+        #page-wrapper {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 星系容器 */
+        #solar-system {
+            position: absolute;
+            width: 0;
+            height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 1.8s cubic-bezier(0.7, 0, 0.3, 1);
+            z-index: 20; 
+        }
+
+        /* 桌面端平移 */
+        @media (min-width: 768px) {
+            .shifted #solar-system {
+                transform: translateX(-28vw);
+            }
+        }
+
+        /* 移动端平移 */
+        @media (max-width: 767px) {
+            .shifted #solar-system {
+                transform: translateY(-22vh) scale(0.75);
+            }
+        }
+
+        /* 轨道 */
+        .orbit {
+            position: absolute;
+            border: 1px dashed var(--accent-color);
+            border-radius: 50%;
+            pointer-events: none;
+            transition: opacity 0.5s ease, filter 0.5s ease;
+        }
+
+        body.blur-active .orbit {
+            opacity: 0.1;
+            filter: blur(3px);
+        }
+
+        /* 中心头像 */
+        .avatar-center {
+            position: absolute;
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            z-index: 100;
+            box-shadow: 0 0 50px rgba(255,255,255,0.05);
+            background: #111;
+            cursor: pointer;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.1);
+            transform: translate(-50%, -50%);
+            left: 0;
+            top: 0;
+            transition: filter 0.5s ease, opacity 0.5s ease;
+        }
+
+        body.blur-active .avatar-center {
+            filter: blur(5px);
+            opacity: 0.3;
+        }
+
+        /* 行星容器 */
+        .planet-container {
+            position: absolute;
+            transform-origin: 0 0;
+            z-index: 20;
+            left: 0;
+            top: 0;
+            transition: filter 0.5s ease, opacity 0.5s ease;
+        }
+
+        body.blur-active .planet-container:not(:has(.expanded)) {
+            filter: blur(8px);
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        .planet-wrapper {
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: translate(-50%, -50%);
+            transition: transform 0.3s ease;
+        }
+
+        .planet-wrapper.expanded {
+            z-index: 999;
+        }
+
+        .planet-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background-size: 60%;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: #1a1a1a;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 5;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* 卡片详情 - 默认向右展开逻辑 */
+        .planet-card {
+            position: absolute;
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%) scaleX(0);
+            transform-origin: left center;
+            height: 52px;
+            width: 52px;
+            background: #ffffff; 
+            border-radius: 26px;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            overflow: hidden;
+            color: #000;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 1;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+        }
+
+        .planet-wrapper.expanded .planet-card {
+            width: 320px;
+            height: 80px;
+            padding: 0 15px;
+            border-radius: 14px;
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(-50%) scaleX(1);
+        }
+
+        /* 移动端向左展开逻辑：独立的原点控制 */
+        @media (max-width: 767px) {
+            .planet-card.expand-left {
+                left: auto;
+                right: -10px;
+                transform-origin: right center;
+            }
+
+            .planet-wrapper.expanded .planet-card.expand-left {
+                flex-direction: row-reverse;
+                transform: translateY(-50%) scaleX(1);
+            }
+
+            .planet-wrapper.expanded .planet-card.expand-left .card-info {
+                margin-left: 0;
+                margin-right: 60px;
+                text-align: right;
+            }
+        }
+
+        .planet-wrapper.expanded .planet-icon {
+            transform: scale(0.8);
+            background-color: #000;
+            margin-left: -8px;
+            box-shadow: 0 0 25px rgba(255,255,255,0.3);
+        }
+
+        @media (max-width: 767px) {
+            .planet-wrapper.expanded:has(.expand-left) .planet-icon {
+                margin-left: 0;
+                margin-right: -8px;
+            }
+        }
+
+        .card-info {
+            margin-left: 60px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 文字区域 */
+        #hero-content {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 30;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) translateX(150px);
+            transition: 
+                opacity 1.5s cubic-bezier(0.7, 0, 0.3, 1) 0.8s, 
+                transform 1.8s cubic-bezier(0.7, 0, 0.3, 1) 0.8s;
+        }
+
+        @media (min-width: 768px) {
+            #hero-content {
+                left: calc(50% + 15vw); 
+                min-width: 450px;
+                max-width: calc(45vw - 40px); 
+                text-align: left;
+            }
+            .shifted #hero-content {
+                opacity: 1;
+                pointer-events: auto;
+                transform: translate(0, -50%); 
+            }
+        }
+
+        @media (max-width: 767px) {
+            #hero-content {
+                left: 50%;
+                bottom: 5%;
+                top: auto;
+                transform: translateX(-50%) translateY(30px);
+                width: 90vw;
+                text-align: center;
+            }
+            .shifted #hero-content {
+                opacity: 1;
+                pointer-events: auto;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        body.blur-active #hero-content {
+            opacity: 0.3;
+        }
+
+        .nav-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            margin-top: 2rem;
+            align-items: flex-start;
+        }
+
+        @media (max-width: 767px) {
+            .nav-list {
+                align-items: center;
+                margin-top: 1.5rem;
+            }
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 0.8rem 3.5rem;
+            color: white;
+            border-radius: 8px;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            text-decoration: none;
+            font-weight: 300;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            white-space: nowrap;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 1);
+            color: #000;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="global-overlay"></div>
+
+    <div id="page-wrapper">
+        <div id="solar-system">
+            <div id="orbits-container"></div>
+            <div class="avatar-center" id="avatar">
+                <img src="https://1814376442.v.123pan.cn/1814376442/url/logo.jpg" alt="yangyi" class="w-full h-full" style="border: none !important;">
+            </div>
+            <div id="planets-container"></div>
+        </div>
+
+        <div id="hero-content">
+            <p class="text-dim text-xl md:text-2xl font-light">你好，我是</p>
+            <h1 class="text-3xl md:text-6xl font-extrabold mt-3 tracking-tighter">
+                阳毅 <span class="text-xl md:text-3xl font-thin ml-0 md:ml-3 text-dim block md:inline">/ YearnstudioYangyi</span>
+            </h1>
+            
+            <div class="nav-list">
+                <a href="/about" class="nav-item nav-btn">关于/ABOUT</a>
+                <a href="/project" class="nav-item nav-btn">项目/PROJECT</a>
+                <a href="/contact" class="nav-item nav-btn">联系/CONTACT</a>
+                <a href="/link" class="nav-item nav-btn">友链/LINK</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const planetData = [
+            { name: "GitHub", ico: "https://cdn.simpleicons.org/github/white", desc: "我的Github主页", url: "https://github.com/YearnstudioYangyi" },
+            { name: "C/C++", ico: "https://cdn.simpleicons.org/cplusplus/white", desc: "古老的东西,只有竞赛用了", url: "#" },
+            { name: "C#", ico: "https://cdn.simpleicons.org/c/white", desc: "为了开发Unity学习过<br><del>但是已经忘了</del>", url: "#" },
+            { name: "Go", ico: "https://cdn.simpleicons.org/go/white", desc: "最近在学习的语言,非常喜欢", url: "#" },
+            { name: "联系协作", ico: "https://cdn.simpleicons.org/gmail/white", desc: "欢迎通过邮件联系我", url: "mailto:yangyi@yearnstudio.cn" },
+            { name: "Python", ico: "https://cdn.simpleicons.org/python/white", desc: "主力开发语言", url:"#"},
+            { name: "HTML", ico: "https://cdn.simpleicons.org/html5/white", desc: "逃不开啊逃不开", url:"#"},
+            { name: "CSS", ico: "https://cdn.simpleicons.org/css/white", desc: "Powered by AI", url:"#"},
+            { name: "JavaScript", ico: "https://cdn.simpleicons.org/javascript/white", desc: "正在学习", url:"#"},
+            { name: "1Panel", ico: "https://cdn.simpleicons.org/1panel/white", desc: "好看捏", url:"#"},
+            { name: "Docker", ico: "https://cdn.simpleicons.org/docker/white", desc: "Docker Desktop什么<del>屎</del>", url:"#"},
+            { name: "Debian", ico: "https://cdn.simpleicons.org/debian/white", desc: "在我写这个主页的时候<br>服务器正在安装", url:"#"},
+            { name: "Cloudflare", ico: "https://cdn.simpleicons.org/cloudflare/white", desc: "Cloudflare怎么会崩...<br><del>不是真崩了?</del>", url:"#"},
+            { name: "Gitlab CE", ico: "https://cdn.simpleicons.org/gitlab/white", desc: "自己部署丰衣足食", url:"#"},
+            { name: "Git", ico: "https://cdn.simpleicons.org/git/white", desc: "老大哥", url:"#"},
+        ];
+
+        let isMobile = window.innerWidth < 768;
+        let orbitRadii = isMobile ? [100, 160, 220] : [180, 280, 380]; 
+        const orbitSpeeds = [0.004, -0.0025, 0.0018];
+        const planets = [];
+
+        function initOrbits() {
+            const orbitsContainer = document.getElementById('orbits-container');
+            orbitsContainer.innerHTML = '';
+            orbitRadii.forEach(r => {
+                const div = document.createElement('div');
+                div.className = 'orbit';
+                div.style.width = `${r * 2}px`;
+                div.style.height = `${r * 2}px`;
+                div.style.left = `-${r}px`;
+                div.style.top = `-${r}px`;
+                orbitsContainer.appendChild(div);
+            });
+        }
+
+        function initPlanets() {
+            const planetsContainer = document.getElementById('planets-container');
+            planetsContainer.innerHTML = '';
+            planets.length = 0;
+
+            const planetsPerOrbit = [0, 0, 0];
+            planetData.forEach((_, i) => planetsPerOrbit[i % orbitRadii.length]++);
+            const orbitCounters = [0, 0, 0];
+
+            planetData.forEach((data, index) => {
+                const orbitIndex = index % orbitRadii.length;
+                const radius = orbitRadii[orbitIndex];
+                const speed = orbitSpeeds[orbitIndex];
+                const totalOnThisOrbit = planetsPerOrbit[orbitIndex];
+                const angleStep = (Math.PI * 2) / totalOnThisOrbit;
+                const startAngle = orbitCounters[orbitIndex] * angleStep;
+                orbitCounters[orbitIndex]++;
+
+                const container = document.createElement('div');
+                container.className = 'planet-container';
+                const wrapper = document.createElement('div');
+                wrapper.className = 'planet-wrapper';
+                const icon = document.createElement('div');
+                icon.className = 'planet-icon';
+                icon.style.backgroundImage = `url('${data.ico}')`;
+
+                if(isMobile) {
+                    icon.style.width = '36px';
+                    icon.style.height = '36px';
+                }
+
+                const card = document.createElement('div');
+                card.className = 'planet-card';
+                card.innerHTML = `
+                    <div class="card-info">
+                        <span class="font-bold text-xl">${data.name}</span>
+                        <span class="text-sm opacity-60">${data.desc}</span>
+                    </div>
+                `;
+
+                wrapper.appendChild(icon);
+                wrapper.appendChild(card);
+                container.appendChild(wrapper);
+                planetsContainer.appendChild(container);
+
+                const planetObj = {
+                    element: container,
+                    wrapper: wrapper,
+                    card: card,
+                    radius: radius,
+                    speed: speed,
+                    angle: startAngle,
+                    isPaused: false,
+                    isExpanded: false,
+                    hoverTimer: null,
+                    orbitIndex: orbitIndex,
+                    url: data.url
+                };
+
+                wrapper.addEventListener('mouseenter', () => {
+                    if(isMobile) return; 
+                    planets.forEach(p => { if (p.orbitIndex === orbitIndex) p.isPaused = true; });
+                    planetObj.hoverTimer = setTimeout(() => {
+                        planetObj.isExpanded = true;
+                        wrapper.classList.add('expanded');
+                        document.body.classList.add('blur-active'); 
+                    }, 400); 
+                });
+
+                wrapper.addEventListener('mouseleave', () => {
+                    if(isMobile) return;
+                    clearTimeout(planetObj.hoverTimer);
+                    planetObj.isExpanded = false;
+                    wrapper.classList.remove('expanded');
+                    document.body.classList.remove('blur-active'); 
+                    planets.forEach(p => { if (p.orbitIndex === orbitIndex) p.isPaused = false; });
+                });
+
+                wrapper.addEventListener('click', (e) => {
+                    if (isMobile) {
+                        if (!planetObj.isExpanded) {
+                            e.preventDefault();
+                            planets.forEach(p => {
+                                p.isExpanded = false;
+                                p.wrapper.classList.remove('expanded');
+                                p.isPaused = false;
+                            });
+                            planetObj.isExpanded = true;
+                            wrapper.classList.add('expanded');
+                            document.body.classList.add('blur-active');
+                            planets.forEach(p => { if (p.orbitIndex === orbitIndex) p.isPaused = true; });
+                        } else {
+                            if (data.url && data.url !== '#') window.open(data.url, '_blank');
+                        }
+                    } else {
+                        if (planetObj.isExpanded && data.url && data.url !== '#') {
+                            window.open(data.url, '_blank');
+                        }
+                    }
+                });
+
+                planets.push(planetObj);
+            });
+        }
+
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                const newIsMobile = window.innerWidth < 768;
+                if (newIsMobile !== isMobile) {
+                    isMobile = newIsMobile;
+                    orbitRadii = isMobile ? [100, 160, 220] : [180, 280, 380]; 
+                    initOrbits();
+                    initPlanets();
+                }
+            }, 150);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (isMobile && !e.target.closest('.planet-wrapper')) {
+                planets.forEach(p => {
+                    p.isExpanded = false;
+                    p.wrapper.classList.remove('expanded');
+                    p.isPaused = false;
+                });
+                document.body.classList.remove('blur-active');
+            }
+        });
+
+        function animate() {
+            planets.forEach(p => {
+                if (!p.isPaused) { p.angle += p.speed; }
+                const x = Math.cos(p.angle) * p.radius;
+                const y = Math.sin(p.angle) * p.radius;
+                p.element.style.transform = `translate(${x}px, ${y}px)`;
+
+                if (isMobile) {
+                    // 仅在非展开状态下通过位置判断展开方向
+                    if (!p.isExpanded) {
+                        if (x > 0) {
+                            p.card.classList.add('expand-left');
+                        } else {
+                            p.card.classList.remove('expand-left');
+                        }
+                    }
+                }
+            });
+            requestAnimationFrame(animate);
+        }
+
+        window.onload = () => {
+            initOrbits();
+            initPlanets();
+            animate();
+            setTimeout(() => {
+                document.body.classList.add('shifted');
+            }, 500);
+        };
+    </script>
+</body>
+</html>

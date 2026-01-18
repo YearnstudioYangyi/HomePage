@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关于我 | 阳毅</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-color: #050505;
+            --accent-color: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: #888888;
+            --glow-color: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            font-family: 'Inter', -apple-system, sans-serif;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* 顶部导航 */
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 2rem;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(5,5,5,0.8), rgba(5,5,5,0));
+            backdrop-filter: blur(10px);
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-link:hover {
+            color: var(--text-main);
+        }
+
+        /* 页面主体 */
+        .content-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 120px 20px 60px;
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 4rem;
+        }
+
+        @media (max-width: 968px) {
+            .content-container {
+                grid-template-columns: 1fr;
+                padding-top: 100px;
+                gap: 2rem;
+            }
+        }
+
+        /* 左侧个人信息 */
+        .profile-section {
+            position: sticky;
+            top: 120px;
+            height: fit-content;
+        }
+
+        .profile-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #111;
+            border: 1px solid var(--accent-color);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            box-shadow: 0 0 30px var(--glow-color);
+        }
+
+        /* 技能标签 */
+        .skill-tag {
+            display: inline-block;
+            padding: 0.3rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin: 0.3rem;
+            color: var(--text-dim);
+            transition: all 0.3s ease;
+        }
+
+        .skill-tag:hover {
+            background: #fff;
+            color: #000;
+            transform: translateY(-2px);
+        }
+
+        /* 经历时间轴 */
+        .timeline {
+            margin-top: 3rem;
+            border-left: 1px solid var(--accent-color);
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .timeline-item {
+            margin-bottom: 2.5rem;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -1.85rem;
+            top: 0.5rem;
+            width: 10px;
+            height: 10px;
+            background: var(--text-dim);
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+
+        .timeline-item:hover::before {
+            background: #fff;
+            box-shadow: 0 0 10px #fff;
+        }
+
+        .timeline-date {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        /* 装饰背景文字 */
+        .bg-text {
+            position: fixed;
+            bottom: -5%;
+            right: -5%;
+            font-size: 25vw;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.01);
+            pointer-events: none;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <a href="/" class="back-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            BACK
+        </a>
+        <div class="text-white font-bold tracking-widest uppercase opacity-40 text-[10px]">About Identity</div>
+    </header>
+
+    <div class="bg-text">ABOUT</div>
+
+    <div class="content-container">
+        <!-- 左侧：简介 -->
+        <section class="profile-section">
+            <div class="profile-image">
+                <img src="https://1814376442.v.123pan.cn/1814376442/url/logo.jpg" alt="Yangyi" class="w-full h-full">
+            </div>
+            <h1 class="text-4xl font-black mb-4">阳毅</h1>
+            <p class="text-dim text-lg mb-6">后端 / 运维</p>
+            <p class="text-dim mb-8">
+                保持热爱, 奔赴山海。
+            </p>
+            
+            <h3 class="text-xs uppercase tracking-widest text-white opacity-40 mb-4">Core Skills</h3>
+            <div id="skills-list">
+                <!-- 由 JS 渲染 -->
+            </div>
+        </section>
+
+        <!-- 右侧：详情 -->
+        <section>
+            <div>
+                <h2 class="text-2xl font-bold mb-6">关于我的故事</h2>
+                <div class="space-y-4 text-dim">
+                    <p>从40code开始我的梦, 直到现在, 无悔进入编程领域</p>
+                    <p>愿此行, 终抵群星!</p>
+                </div>
+            </div>
+
+            <div class="mt-12">
+                <h2 class="text-2xl font-bold mb-8">足迹</h2>
+                <div class="timeline" id="experience-timeline">
+                    <!-- 由 JS 渲染 -->
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const aboutData = {
+            skills: [
+                "Python", "Go", "Git", "C++", "C", "C#", "HTML", "CSS", "JavaScript", "Docker"
+            ],
+            experiences: [
+                {
+                    date: "2025- Present",
+                    title: "管理 @ 灵息",
+                    desc: "一个值得Yearnstudio骄傲的项目"
+                },
+                {
+                    date: "2024 - Present",
+                    title: "开发 @ ShangCloud",
+                    desc: "全新构思的一个项目,一边鸽一边做"
+                },
+                {
+                    date: "2022 - Present",
+                    title: "开发 @ Yearnstudio",
+                    desc: "支撑我走下去的动力"
+                },
+                {
+                    date: "2022 - Present",
+                    title: "运维 @ Yearnstudio资源站",
+                    desc: "为了一个梦想而诞生的公益资源站"
+                },
+                {
+                    date: "2022 - Present",
+                    title: "小作者 @ 40code",
+                    desc: "梦开始的地方"
+                },
+                {
+                    date: "2020 - 2022",
+                    title: "小作者 @ Scratch中社",
+                    desc: "难以评价"
+                }
+            ]
+        };
+
+        // 渲染技能
+        function renderSkills() {
+            const container = document.getElementById('skills-list');
+            container.innerHTML = aboutData.skills.map(s => `<span class="skill-tag">${s}</span>`).join('');
+        }
+
+        // 渲染时间轴
+        function renderTimeline() {
+            const container = document.getElementById('experience-timeline');
+            container.innerHTML = aboutData.experiences.map(exp => `
+                <div class="timeline-item">
+                    <div class="timeline-date">${exp.date}</div>
+                    <div class="timeline-title">${exp.title}</div>
+                    <div class="text-sm text-dim mt-2">${exp.desc}</div>
+                </div>
+            `).join('');
+        }
+
+        window.onload = () => {
+            renderSkills();
+            renderTimeline();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>联系我 | 阳毅</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-color: #050505;
+            --accent-color: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: #888888;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            overflow-x: hidden;
+            font-family: 'Inter', -apple-system, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* 顶部导航 */
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 2rem;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(5,5,5,1), rgba(5,5,5,0));
+            backdrop-filter: blur(10px);
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-link:hover {
+            color: var(--text-main);
+        }
+
+        /* 容器布局 */
+        .contact-wrapper {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 160px 20px 80px;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        /* 联系方式卡片 */
+        .contact-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            transition: all 0.3s ease-out;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+        }
+
+        .contact-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .contact-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+        }
+
+        .contact-value {
+            font-size: 1rem;
+            font-weight: 500;
+            word-break: break-all;
+        }
+
+        /* 装饰背景文字 - 调低透明度以降低存在感 */
+        .bg-text {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20vw;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.005);
+            pointer-events: none;
+            z-index: -1;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 767px) {
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+            .contact-wrapper {
+                padding-top: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <a href="/" class="back-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            BACK
+        </a>
+        <div class="text-white font-bold tracking-widest uppercase opacity-30 text-[10px]">Contact Information</div>
+    </header>
+
+    <div class="bg-text">HI</div>
+
+    <main class="contact-wrapper">
+        <div class="mb-10">
+            <h1 class="text-3xl font-bold mb-2">联系方式</h1>
+            <p class="text-dim text-sm">在浩瀚的数字星空中，期待捕捉到你的信号。</p>
+        </div>
+
+        <div class="contact-grid" id="contact-grid">
+            <!-- 联系节点由 JS 渲染 -->
+        </div>
+    </main>
+
+    <script>
+        // 联系方式数据
+        const contactData = [
+            // { label: "WeChat / 微信", value: "YearnstudioYangyi", url: "" },
+            { label: "QQ", value: "3303289608", url: "mqqapi://card/show_pslcard?src_type=internal&source=sharecard&version=1&uin=3303289608" },
+            { label: "Telegram", value: "@YearnstudioYangyi", url: "https://t.me/YearnstudioYangyi" },
+            { label: "Discord", value: "YearnYangyi", url: "https://discordapp.com/users/1070529633705005066" },
+            { label: "Email", value: "yangyi@yearnstudio.cn", url: "mailto:yangyi@yearnstudio.cn" },
+            { label: "Google Email", value: "yearnstudioyangyi@gmail.com", url: "mailto:yearnstudioyangyi@gmail.com"},
+            { label: "Academic Email", value: "yangyi@com.edu.rs", url: "mailto:yangyi@com.edu.rs" },
+            { label: "Personal Github", value: "YearnstudioYangyi", url: "https://github.com/YearnstudioYangyi" },
+            { label: "Studio Github", value: "YearnstudioHorizon", url: "https://github.com/YearnstudioHorizon" },
+            { label: "40code", value: "yangyi", url: "https://40code.com/#page=user&id=858" }
+        ];
+
+        function renderContacts() {
+            const grid = document.getElementById('contact-grid');
+            grid.innerHTML = contactData.map(item => {
+                const isLink = item.url !== "";
+                const tag = isLink ? 'a' : 'div';
+                const attrs = isLink ? `href="${item.url}" target="_blank"` : '';
+
+                return `
+                    <${tag} ${attrs} class="contact-card">
+                        <span class="contact-label">${item.label}</span>
+                        <span class="contact-value">${item.value}</span>
+                    </${tag}>
+                `;
+            }).join('');
+        }
+
+        window.onload = renderContacts;
+    </script>
+</body>
+</html>

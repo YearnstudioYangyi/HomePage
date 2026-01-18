@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>作品集 | 阳毅</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-color: #050505;
+            --accent-color: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: #888888;
+            --glow-white: rgba(255, 255, 255, 0.2);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, sans-serif;
+            height: 100vh;
+        }
+
+        /* 顶部导航 */
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 2rem;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(5,5,5,0.9), rgba(5,5,5,0));
+            backdrop-filter: blur(10px);
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-link:hover {
+            color: var(--text-main);
+        }
+
+        /* 胶卷总容器 */
+        .film-wrapper {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 3rem;
+            padding-top: 60px;
+            transition: all 0.5s ease;
+        }
+
+        .film-container {
+            width: 100vw;
+            overflow: visible; /* 允许放大后的卡片超出容器 */
+            position: relative;
+        }
+
+        .film-track {
+            display: flex;
+            gap: 2rem;
+            padding: 2rem 0;
+            will-change: transform;
+            white-space: nowrap;
+            transition: opacity 0.5s ease;
+        }
+
+        /* 作品卡片 */
+        .work-card {
+            flex: 0 0 340px;
+            height: 240px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+
+        @media (max-width: 767px) {
+            .work-card {
+                flex: 0 0 280px;
+                height: 200px;
+                padding: 1.5rem;
+            }
+            .film-wrapper { gap: 1.5rem; }
+        }
+
+        /* 悬停时的“光感”和放大效果 */
+        .work-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: scale(1.15);
+            z-index: 100;
+            box-shadow: 0 0 40px var(--glow-white), 
+                        inset 0 0 20px rgba(255, 255, 255, 0.05);
+        }
+
+        /* 重点：当某一个卡片被悬停时，其他卡片模糊 */
+        .film-wrapper.has-hover .work-card:not(:hover) {
+            filter: blur(8px);
+            opacity: 0.3;
+            transform: scale(0.95);
+        }
+
+        .work-header {
+            margin-bottom: 0.8rem;
+        }
+
+        .work-name {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text-main);
+            transition: all 0.3s ease;
+        }
+
+        .work-desc {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            white-space: normal;
+        }
+
+        .work-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #000;
+            background: #fff;
+            padding: 0.5rem 1.2rem;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+            width: fit-content;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255,255,255,0.2);
+        }
+
+        .work-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255,255,255,0.4);
+        }
+
+        /* 装饰背景 */
+        .bg-text {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20vw;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.01);
+            pointer-events: none;
+            z-index: -1;
+            letter-spacing: -1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <a href="/" class="back-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            BACK
+        </a>
+        <div class="text-white font-bold tracking-widest uppercase opacity-40 text-[10px]">Creative Works Spotlight</div>
+    </header>
+
+    <div class="bg-text">WORKS</div>
+
+    <div class="film-wrapper" id="main-wrapper">
+        <!-- 上部分：从右向左 -->
+        <div class="film-container">
+            <div class="film-track" id="track-upper"></div>
+        </div>
+
+        <!-- 下部分：从左向右 -->
+        <div class="film-container">
+            <div class="film-track" id="track-lower"></div>
+        </div>
+    </div>
+
+    <script>
+        const workData = [
+            { name: "ShangCloud", desc: "公益Scratch云变量存储、多人联机功能和API集成,助力开发者快速构建互动 Scratch 项目。免费、用户友好，支持跨社区数据传输。", url: "https://api.yearnstudio.cn" },
+            { name: "YearnstudioBot", desc: "第三方/官方混合架构机器人"},
+            { name: "Yearnstudio资源站", desc: "一个全公益的资源站点", url: "https://resource.yearnstudio.cn" },
+            { name: "BreathAIPay", desc: "用Go写的一个一个学习性质的小项目", url: "https://github.com/BreathHorizon/BreathAIPay"},
+            { name: "Scratch个人卡片", desc: "Generate your card for your scratch REAMDE", url: "https://github.com/YearnstudioYangyi/scratch-readme-stats"},
+            { name: "快速报名器", desc: "给陕西地区使用的，批量报名学业水平考试的一个小脚本", url: "https://github.com/YearnstudioYangyi/scratch-readme-stats"}
+        ];
+
+        // 状态管理
+        const state = {
+            isUpperPaused: false,
+            isLowerPaused: false,
+            posUpper: 0,
+            posLower: 0,
+            speed: 0.8
+        };
+
+        const wrapper = document.getElementById('main-wrapper');
+        const trackUpper = document.getElementById('track-upper');
+        const trackLower = document.getElementById('track-lower');
+
+        // 随机分配到两组轨道
+        const shuffled = [...workData].sort(() => Math.random() - 0.5);
+        const mid = Math.ceil(shuffled.length / 2);
+        const groupUpper = shuffled.slice(0, mid);
+        const groupLower = shuffled.slice(mid);
+
+        function createCard(work, trackId) {
+            const linkHtml = work.url 
+                ? `<a href="${work.url}" target="_blank" class="work-link">VIEW CASE</a>`
+                : '';
+            
+            const card = document.createElement('div');
+            card.className = 'work-card';
+            card.innerHTML = `
+                <div>
+                    <div class="work-header">
+                        <h2 class="work-name">${work.name}</h2>
+                    </div>
+                    <p class="work-desc">${work.desc}</p>
+                </div>
+                ${linkHtml}
+            `;
+
+            // 悬停逻辑
+            card.addEventListener('mouseenter', () => {
+                if (trackId === 'upper') state.isUpperPaused = true;
+                if (trackId === 'lower') state.isLowerPaused = true;
+                wrapper.classList.add('has-hover');
+            });
+
+            card.addEventListener('mouseleave', () => {
+                state.isUpperPaused = false;
+                state.isLowerPaused = false;
+                wrapper.classList.remove('has-hover');
+            });
+
+            return card;
+        }
+
+        function renderTracks() {
+            // 复制多次以确保无缝感
+            const itemsUpper = [...groupUpper, ...groupUpper, ...groupUpper];
+            const itemsLower = [...groupLower, ...groupLower, ...groupLower];
+            
+            itemsUpper.forEach(work => trackUpper.appendChild(createCard(work, 'upper')));
+            itemsLower.forEach(work => trackLower.appendChild(createCard(work, 'lower')));
+        }
+
+        function animate() {
+            // 上部运动逻辑
+            if (!state.isUpperPaused) {
+                state.posUpper -= state.speed;
+                const upperWidth = trackUpper.scrollWidth / 3;
+                if (Math.abs(state.posUpper) >= upperWidth) state.posUpper = 0;
+                trackUpper.style.transform = `translateX(${state.posUpper}px)`;
+            }
+
+            // 下部运动逻辑
+            if (!state.isLowerPaused) {
+                state.posLower += state.speed;
+                const lowerWidth = trackLower.scrollWidth / 3;
+                if (state.posLower >= 0) state.posLower = -lowerWidth; 
+                trackLower.style.transform = `translateX(${state.posLower}px)`;
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        window.onload = () => {
+            renderTracks();
+            // 初始化位置
+            state.posLower = -trackLower.scrollWidth / 3;
+            animate();
+        };
+    </script>
+</body>
+</html>

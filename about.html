@@ -79,6 +79,11 @@
                 padding-top: 100px;
                 gap: 2rem;
             }
+
+            .profile-section {
+                position: relative !important; /* 移动端取消固定，防止重叠 */
+                top: 0 !important;
+            }
         }
 
         /* 左侧个人信息 */
@@ -86,6 +91,7 @@
             position: sticky;
             top: 120px;
             height: fit-content;
+            transition: opacity 0.3s ease-out; /* 增加平滑过渡 */
         }
 
         .profile-image {
@@ -281,6 +287,20 @@
         window.onload = () => {
             renderSkills();
             renderTimeline();
+
+            // 移动端滚动淡出逻辑
+            const profile = document.querySelector('.profile-section');
+            window.addEventListener('scroll', () => {
+                if (window.innerWidth <= 968) {
+                    const scrollY = window.scrollY;
+                    const fadeThreshold = 300; // 在滚动 300px 内完成淡出
+                    const opacity = Math.max(0, 1 - scrollY / fadeThreshold);
+                    profile.style.opacity = opacity;
+                } else {
+                    // 恢复桌面端显示
+                    profile.style.opacity = 1;
+                }
+            });
         };
     </script>
 </body>

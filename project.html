@@ -8,7 +8,6 @@
     <meta name="keywords" content="作品集, 阳毅项目, ShangCloud, Yearnstudio, 开源项目, 编程作品">
     <meta name="author" content="阳毅">
 
-    <!-- Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://yangyiit.top/project">
     <meta property="og:title" content="作品集 | 阳毅">
@@ -29,8 +28,9 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
-            overflow: hidden;
             font-family: 'Inter', -apple-system, sans-serif;
+            /* 桌面端默认不滚动，由JS控制动画 */
+            overflow: hidden; 
             height: 100vh;
         }
 
@@ -76,7 +76,7 @@
 
         .film-container {
             width: 100vw;
-            overflow: visible; /* 允许放大后的卡片超出容器 */
+            overflow: visible;
             position: relative;
         }
 
@@ -106,30 +106,21 @@
             cursor: pointer;
         }
 
-        @media (max-width: 767px) {
-            .work-card {
-                flex: 0 0 280px;
-                height: 200px;
-                padding: 1.5rem;
+        /* 悬停时的“光感”和放大效果 - 仅在非触摸设备启用 */
+        @media (hover: hover) {
+            .work-card:hover {
+                background: rgba(255, 255, 255, 0.08);
+                border-color: rgba(255, 255, 255, 0.5);
+                transform: scale(1.15);
+                z-index: 100;
+                box-shadow: 0 0 40px var(--glow-white), 
+                            inset 0 0 20px rgba(255, 255, 255, 0.05);
             }
-            .film-wrapper { gap: 1.5rem; }
-        }
-
-        /* 悬停时的“光感”和放大效果 */
-        .work-card:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.5);
-            transform: scale(1.15);
-            z-index: 100;
-            box-shadow: 0 0 40px var(--glow-white), 
-                        inset 0 0 20px rgba(255, 255, 255, 0.05);
-        }
-
-        /* 重点：当某一个卡片被悬停时，其他卡片模糊 */
-        .film-wrapper.has-hover .work-card:not(:hover) {
-            filter: blur(8px);
-            opacity: 0.3;
-            transform: scale(0.95);
+            .film-wrapper.has-hover .work-card:not(:hover) {
+                filter: blur(8px);
+                opacity: 0.3;
+                transform: scale(0.95);
+            }
         }
 
         .work-header {
@@ -142,6 +133,7 @@
             letter-spacing: -0.5px;
             color: var(--text-main);
             transition: all 0.3s ease;
+            white-space: normal; /* 允许标题换行 */
         }
 
         .work-desc {
@@ -176,7 +168,6 @@
             box-shadow: 0 6px 20px rgba(255,255,255,0.4);
         }
 
-        /* 装饰背景 */
         .bg-text {
             position: fixed;
             top: 50%;
@@ -188,6 +179,52 @@
             pointer-events: none;
             z-index: -1;
             letter-spacing: -1rem;
+        }
+
+        /* =========================================
+           移动端适配 (小于 768px)
+           ========================================= */
+        @media (max-width: 768px) {
+            body {
+                overflow-y: auto; /* 允许垂直滚动 */
+                height: auto;     /* 高度自适应 */
+                overflow-x: hidden;
+            }
+
+            .film-wrapper {
+                height: auto;
+                display: block; /* 取消Flex居中 */
+                padding: 100px 1.5rem 4rem; /* 增加顶部padding避开header */
+                gap: 0;
+            }
+
+            .film-container {
+                width: 100%;
+                margin-bottom: 2rem;
+            }
+
+            .film-track {
+                flex-direction: column; /* 垂直排列 */
+                gap: 1.5rem;
+                padding: 0;
+                transform: none !important; /* 强制取消JS位移 */
+                white-space: normal;
+            }
+
+            .work-card {
+                flex: none;
+                width: 100%; /* 占满屏幕宽度 */
+                height: auto; /* 高度自适应内容 */
+                min-height: 200px;
+                padding: 1.5rem;
+            }
+
+            /* 调整移动端背景字大小 */
+            .bg-text {
+                font-size: 15vw;
+                top: 20%;
+                letter-spacing: -0.2rem;
+            }
         }
     </style>
 </head>
@@ -204,12 +241,10 @@
     <div class="bg-text">WORKS</div>
 
     <div class="film-wrapper" id="main-wrapper">
-        <!-- 上部分：从右向左 -->
         <div class="film-container">
             <div class="film-track" id="track-upper"></div>
         </div>
 
-        <!-- 下部分：从左向右 -->
         <div class="film-container">
             <div class="film-track" id="track-lower"></div>
         </div>
@@ -238,6 +273,9 @@
         const trackUpper = document.getElementById('track-upper');
         const trackLower = document.getElementById('track-lower');
 
+        // 检测是否为移动设备
+        const isMobile = window.innerWidth < 768;
+
         // 随机分配到两组轨道
         const shuffled = [...workData].sort(() => Math.random() - 0.5);
         const mid = Math.ceil(shuffled.length / 2);
@@ -261,32 +299,38 @@
                 ${linkHtml}
             `;
 
-            // 悬停逻辑
-            card.addEventListener('mouseenter', () => {
-                if (trackId === 'upper') state.isUpperPaused = true;
-                if (trackId === 'lower') state.isLowerPaused = true;
-                wrapper.classList.add('has-hover');
-            });
+            // 仅在非移动端（或大屏）添加悬停暂停逻辑
+            if (!isMobile) {
+                card.addEventListener('mouseenter', () => {
+                    if (trackId === 'upper') state.isUpperPaused = true;
+                    if (trackId === 'lower') state.isLowerPaused = true;
+                    wrapper.classList.add('has-hover');
+                });
 
-            card.addEventListener('mouseleave', () => {
-                state.isUpperPaused = false;
-                state.isLowerPaused = false;
-                wrapper.classList.remove('has-hover');
-            });
+                card.addEventListener('mouseleave', () => {
+                    state.isUpperPaused = false;
+                    state.isLowerPaused = false;
+                    wrapper.classList.remove('has-hover');
+                });
+            }
 
             return card;
         }
 
         function renderTracks() {
-            // 复制多次以确保无缝感
-            const itemsUpper = [...groupUpper, ...groupUpper, ...groupUpper];
-            const itemsLower = [...groupLower, ...groupLower, ...groupLower];
+            // 如果是移动端，不需要复制多份数据（不需要无限滚动）
+            // 如果是桌面端，复制多次以确保视觉上的无限循环无缝感
+            const itemsUpper = isMobile ? groupUpper : [...groupUpper, ...groupUpper, ...groupUpper];
+            const itemsLower = isMobile ? groupLower : [...groupLower, ...groupLower, ...groupLower];
             
             itemsUpper.forEach(work => trackUpper.appendChild(createCard(work, 'upper')));
             itemsLower.forEach(work => trackLower.appendChild(createCard(work, 'lower')));
         }
 
         function animate() {
+            // 如果是移动端，直接退出动画循环
+            if (isMobile) return;
+
             // 上部运动逻辑
             if (!state.isUpperPaused) {
                 state.posUpper -= state.speed;
@@ -308,10 +352,26 @@
 
         window.onload = () => {
             renderTracks();
-            // 初始化位置
-            state.posLower = -trackLower.scrollWidth / 3;
-            animate();
+            
+            // 只有桌面端才启动动画逻辑
+            if (!isMobile) {
+                // 初始化下轨道位置，使其错开
+                state.posLower = -trackLower.scrollWidth / 3;
+                animate();
+            }
         };
+        
+        // 监听窗口大小变化，简单处理（可选：刷新页面以重置布局）
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                // 如果跨越了断点，建议刷新页面重新计算布局
+                if ((isMobile && window.innerWidth >= 768) || (!isMobile && window.innerWidth < 768)) {
+                    location.reload();
+                }
+            }, 200);
+        });
     </script>
 </body>
 </html>

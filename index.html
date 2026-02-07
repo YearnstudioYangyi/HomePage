@@ -10,7 +10,6 @@
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://yangyiit.top/">
 
-    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://yangyiit.top/">
     <meta property="og:title" content="阳毅 | YearnstudioYangyi">
@@ -333,7 +332,7 @@
     <div id="page-wrapper">
         <div id="solar-system">
             <div id="orbits-container"></div>
-            <div class="avatar-center" id="avatar">
+            <div class="avatar-center" id="avatar" title="Double click for Anti-Gravity Mode">
                 <img src="https://1814376442.v.123pan.cn/1814376442/url/logo.jpg" alt="yangyi" class="w-full h-full" style="border: none !important;">
             </div>
             <div id="planets-container"></div>
@@ -355,6 +354,9 @@
     </div>
 
     <script>
+        /* ============================
+           原始逻辑：星系系统
+           ============================ */
         const planetData = [
             { name: "GitHub", ico: "https://cdn.simpleicons.org/github/white", desc: "我的Github主页", url: "https://github.com/YearnstudioYangyi" },
             { name: "C/C++", ico: "https://cdn.simpleicons.org/cplusplus/white", desc: "古老的东西,只有竞赛用了", url: "#" },
@@ -452,7 +454,7 @@
                 };
 
                 wrapper.addEventListener('mouseenter', () => {
-                    if(isMobile) return; 
+                    if(isMobile || physicsActive) return; 
                     planets.forEach(p => { if (p.orbitIndex === orbitIndex) p.isPaused = true; });
                     planetObj.hoverTimer = setTimeout(() => {
                         planetObj.isExpanded = true;
@@ -462,7 +464,7 @@
                 });
 
                 wrapper.addEventListener('mouseleave', () => {
-                    if(isMobile) return;
+                    if(isMobile || physicsActive) return;
                     clearTimeout(planetObj.hoverTimer);
                     planetObj.isExpanded = false;
                     wrapper.classList.remove('expanded');
@@ -471,6 +473,7 @@
                 });
 
                 wrapper.addEventListener('click', (e) => {
+                    if (physicsActive) return; // 物理模式下禁用普通点击
                     if (isMobile) {
                         if (!planetObj.isExpanded) {
                             e.preventDefault();
@@ -512,7 +515,7 @@
         });
 
         document.addEventListener('click', (e) => {
-            if (isMobile && !e.target.closest('.planet-wrapper')) {
+            if (isMobile && !e.target.closest('.planet-wrapper') && !physicsActive) {
                 planets.forEach(p => {
                     p.isExpanded = false;
                     p.wrapper.classList.remove('expanded');
@@ -523,6 +526,7 @@
         });
 
         function animate() {
+            if (physicsActive) return; // 物理模式激活时停止轨道动画
             planets.forEach(p => {
                 if (!p.isPaused) { p.angle += p.speed; }
                 const x = Math.cos(p.angle) * p.radius;
@@ -530,7 +534,6 @@
                 p.element.style.transform = `translate(${x}px, ${y}px)`;
 
                 if (isMobile) {
-                    // 仅在非展开状态下通过位置判断展开方向
                     if (!p.isExpanded) {
                         if (x > 0) {
                             p.card.classList.add('expand-left');
@@ -543,13 +546,264 @@
             requestAnimationFrame(animate);
         }
 
+        /* ============================
+           新功能：反重力模式 (延迟加载)
+           ============================ */
+        let physicsActive = false;
+        let physicsLoaded = false;
+
+        // 绑定触发事件：双击头像
+        document.getElementById('avatar').addEventListener('dblclick', () => {
+            if (physicsActive) return;
+            
+            if (physicsLoaded && typeof Matter !== 'undefined') {
+                startAntiGravity();
+            } else {
+                console.log("物理引擎尚未加载完毕，请稍候...");
+                // 简单的提示
+                const avatar = document.getElementById('avatar');
+                avatar.style.transform = "translate(-50%, -50%) scale(1.1)";
+                setTimeout(() => avatar.style.transform = "translate(-50%, -50%) scale(1)", 200);
+            }
+        });
+
+        // 异步加载脚本工具
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        // 启动物理引擎核心逻辑
+        function startAntiGravity() {
+            physicsActive = true;
+            console.log("Starting Anti-Gravity Mode...");
+
+            // 1. 初始化 Matter.js
+            const { Engine, Render, Runner, MouseConstraint, Mouse, Composite, Bodies, Body } = Matter;
+            const engine = Engine.create();
+            engine.world.gravity.y = 0; // 无重力
+
+            // 2. 创建画布
+            const canvas = document.createElement('canvas');
+            canvas.style.cssText = 'position:fixed; inset:0; z-index:1000; pointer-events:none;';
+            document.body.appendChild(canvas);
+
+            // 3. 配置渲染器 (Wireframes: false 以便我们自己绘图)
+            const render = Render.create({
+                canvas: canvas,
+                engine: engine,
+                options: {
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                    wireframes: false,
+                    background: 'transparent'
+                }
+            });
+
+            // 4. 允许交互
+            canvas.style.pointerEvents = 'auto'; // 接管鼠标事件
+            const mouse = Mouse.create(canvas);
+            const mouseConstraint = MouseConstraint.create(engine, {
+                mouse: mouse,
+                constraint: { stiffness: 0.1, render: { visible: false } }
+            });
+            Composite.add(engine.world, mouseConstraint);
+
+            // 5. 转换 DOM 到 Physics Body
+            // 先隐藏 DOM 容器交互，防止重叠
+            document.getElementById('page-wrapper').style.pointerEvents = 'none';
+            document.getElementById('orbits-container').style.opacity = '0'; // 隐藏轨道线
+
+            const bodies = [];
+            
+            // 定义要转换的元素
+            // 注意：因为有 .shifted 变换，getBoundingClientRect 会自动获取变换后的绝对坐标，这是我们想要的
+            const selectors = [
+                { sel: '#avatar', shape: 'circle' }, // 头像
+                { sel: '.planet-icon', shape: 'circle' }, // 只有图标，文字卡片忽略
+                { sel: '.nav-btn', shape: 'rect' }, // 按钮
+                { sel: 'h1', shape: 'rect' }, // 名字
+                { sel: 'p', shape: 'rect' } // 介绍文字
+            ];
+
+            selectors.forEach(config => {
+                document.querySelectorAll(config.sel).forEach(el => {
+                    const rect = el.getBoundingClientRect();
+                    // 过滤掉不可见的或太小的元素
+                    if (rect.width === 0 || rect.height === 0) return;
+                    // 过滤掉展开的卡片里的文字，只保留主界面的
+                    if (el.closest('.planet-card')) return; 
+
+                    const x = rect.left + rect.width / 2;
+                    const y = rect.top + rect.height / 2;
+                    let body;
+
+                    if (config.shape === 'circle') {
+                        // 稍微缩小碰撞体积，手感更好
+                        body = Bodies.circle(x, y, rect.width / 2, { 
+                            restitution: 0.9, 
+                            frictionAir: 0.02 
+                        });
+                    } else {
+                        body = Bodies.rectangle(x, y, rect.width, rect.height, { 
+                            restitution: 0.6, 
+                            frictionAir: 0.03 
+                        });
+                    }
+
+                    // 抓取样式数据用于 Canvas 绘制
+                    const style = window.getComputedStyle(el);
+                    const isImg = el.tagName === 'IMG' || el.querySelector('img') || style.backgroundImage !== 'none';
+                    let bgUrl = '';
+                    
+                    if (style.backgroundImage !== 'none') {
+                        bgUrl = style.backgroundImage.slice(5, -2).replace(/"/g, "");
+                    } else if (el.tagName === 'IMG') {
+                        bgUrl = el.src;
+                    } else if (el.querySelector('img')) {
+                        bgUrl = el.querySelector('img').src;
+                    }
+
+                    body.userData = {
+                        dom: el,
+                        text: el.innerText,
+                        isImg: isImg,
+                        imgSrc: bgUrl,
+                        color: style.color,
+                        bgColor: style.backgroundColor, // 简化的背景色处理
+                        fontSize: style.fontSize,
+                        fontFamily: style.fontFamily,
+                        fontWeight: style.fontWeight,
+                        shape: config.shape
+                    };
+
+                    // 隐藏原元素
+                    el.style.visibility = 'hidden';
+
+                    // 施加初始随机冲力，模拟失重爆炸感
+                    Body.applyForce(body, body.position, { 
+                        x: (Math.random() - 0.5) * 0.025, 
+                        y: (Math.random() - 0.5) * 0.025 
+                    });
+
+                    bodies.push(body);
+                    Composite.add(engine.world, body);
+                });
+            });
+
+            // 6. 启动引擎
+            const runner = Runner.create();
+            Runner.run(runner, engine);
+
+            // 7. 自定义渲染循环
+            (function renderLoop() {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                bodies.forEach(body => {
+                    const { x, y } = body.position;
+                    const data = body.userData;
+                    
+                    ctx.save();
+                    ctx.translate(x, y);
+                    ctx.rotate(body.angle);
+
+                    if (data.shape === 'circle' && data.isImg) {
+                        // 绘制图标/头像
+                        const r = body.circleRadius;
+                        ctx.beginPath();
+                        ctx.arc(0, 0, r, 0, Math.PI * 2);
+                        ctx.clip(); // 裁剪成圆形
+                        
+                        // 绘制背景色 (特别是 GitHub 这种透明图标)
+                        ctx.fillStyle = "#1a1a1a"; 
+                        ctx.fill();
+
+                        // 绘制图片
+                        // 注意：这里实时创建 Image 可能会闪烁，最好预加载。
+                        // 但由于浏览器有缓存，通常问题不大。为了简便直接绘制。
+                        if(data.imgSrc) {
+                            const img = new Image();
+                            img.src = data.imgSrc;
+                            // 保持比例绘制
+                            ctx.drawImage(img, -r, -r, r*2, r*2);
+                        }
+                        
+                        // 边框
+                        ctx.lineWidth = 2;
+                        ctx.strokeStyle = "rgba(255,255,255,0.1)";
+                        ctx.stroke();
+
+                    } else {
+                        // 绘制文字/按钮矩形
+                        const w = body.bounds.max.x - body.bounds.min.x;
+                        const h = body.bounds.max.y - body.bounds.min.y;
+                        
+                        ctx.fillStyle = "rgba(255,255,255,0.02)";
+                        ctx.strokeStyle = "rgba(255,255,255,0.15)";
+                        
+                        // 绘制圆角矩形
+                        ctx.beginPath();
+                        if (ctx.roundRect) {
+                            ctx.roundRect(-w/2, -h/2, w, h, 8);
+                        } else {
+                            ctx.rect(-w/2, -h/2, w, h);
+                        }
+                        ctx.fill();
+                        ctx.stroke();
+
+                        // 绘制文字
+                        ctx.fillStyle = data.color;
+                        ctx.font = `${data.fontWeight} ${data.fontSize} ${data.fontFamily}`;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(data.text, 0, 0);
+                    }
+                    ctx.restore();
+
+                    // 8. 边界循环处理 (Pac-man effect)
+                    // 增加缓冲区，让物体完全飞出屏幕后再回来
+                    const buffer = 100;
+                    if (x > canvas.width + buffer) Body.setPosition(body, { x: -buffer, y });
+                    if (x < -buffer) Body.setPosition(body, { x: canvas.width + buffer, y });
+                    if (y > canvas.height + buffer) Body.setPosition(body, { x, y: -buffer });
+                    if (y < -buffer) Body.setPosition(body, { x, y: canvas.height + buffer });
+                });
+
+                requestAnimationFrame(renderLoop);
+            })();
+        }
+
+        /* ============================
+           初始化流程
+           ============================ */
         window.onload = () => {
+            // 1. 正常的页面初始化
             initOrbits();
             initPlanets();
             animate();
             setTimeout(() => {
                 document.body.classList.add('shifted');
             }, 500);
+
+            // 2. 延迟加载物理引擎 (Deferred Loading)
+            // 在页面完全加载完毕 2.5 秒后，网络空闲时下载库
+            setTimeout(() => {
+                console.log("准备后台加载物理引擎...");
+                loadScript('https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js')
+                    .then(() => {
+                        physicsLoaded = true;
+                        console.log("物理引擎已就绪 (双击头像启动)");
+                    })
+                    .catch(err => {
+                        console.error("物理引擎加载失败", err);
+                    });
+            }, 2500); 
         };
     </script>
 </body>
